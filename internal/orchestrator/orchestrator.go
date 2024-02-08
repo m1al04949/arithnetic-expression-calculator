@@ -58,11 +58,11 @@ func RunServer() error {
 	}
 
 	if err := srv.ListenAndServe(); err != nil {
-		// logger.Info("failed to start server")
+		logger.Info("failed to start server")
 		return err
 	}
 
-	// log.Error("server stopped")
+	logger.Error("server stopped")
 
 	return fmt.Errorf("server is stopped")
 }
