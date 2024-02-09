@@ -13,12 +13,19 @@ type Storage struct {
 	db     *sql.DB
 }
 
+type Storer interface {
+	Close()
+	CreateTabs() error
+	Open() error
+	ExpressionSave(string) (int, error)
+}
+
 var (
 	ErreExpExists = errors.New("expression exists")
 )
 
 // Get instance
-func New(cfgpath, dburl string) *Storage {
+func New(cfgpath, dburl string) Storer {
 	return &Storage{
 		config: &Config{
 			ConfigPath:  cfgpath,
@@ -56,11 +63,42 @@ func (s *Storage) CreateTabs() error {
 	    CREATE TABLE IF NOT EXISTS expressions(
 		id SERIAL PRIMARY KEY,
 		added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		expression TEXT);
+		expression TEXT,
+		status TEXT NOT NULL);
 		`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil
+}
+
+func (s *Storage) ExpressionSave(expression string) (int, error) {
+
+	const op = "storage.SaveUser"
+
+	// m := &model.Users{
+	// 	UserID: userToSave,
+	// }
+
+	// if err := s.db.QueryRow("SELECT (created_at) FROM users WHERE user_id=$1",
+	// 	userToSave).Scan(&m.CreatedAt); err != nil {
+	// 	stmt, err := s.db.Prepare("INSERT INTO users(user_id) VALUES ($1)")
+	// 	if err != nil {
+	// 		return fmt.Errorf("%s: %w", op, err)
+	// 	}
+	// 	defer stmt.Close()
+
+	// 	_, err = stmt.Exec(userToSave)
+	// 	if err != nil {
+	// 		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code == "23505" {
+	// 			return fmt.Errorf("%s: %w, created at %s", op, ErrUserExists, m.CreatedAt)
+	// 		}
+	// 		return fmt.Errorf("%s: %w", op, err)
+	// 	}
+	// } else {
+	// 	return fmt.Errorf("%s: %w, created at %s", op, ErrUserExists, m.CreatedAt)
+	// }
+
+	return 0, nil
 }

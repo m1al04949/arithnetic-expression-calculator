@@ -9,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/expressions"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/orchrepository"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/storage"
 )
 
@@ -34,6 +36,11 @@ func RunServer() error {
 	}
 	logger.Info("storage is initialized")
 
+	//Init Repository
+	orchRepository := orchrepository.New(logger, store)
+	expHandler := expressions.New(*orchRepository)
+	// pageHandler := pages.New(*orchRepository)
+
 	// Router Initiziling
 	router := chi.NewRouter()
 
@@ -41,8 +48,8 @@ func RunServer() error {
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
-
-		// r.Post("/expressions", expressions.PostExpression(logger, store)) // Add Expression
+		// r.Get("/", expHandler.GetMainPage) // Start Page
+		r.Post("/", expHandler.PostExpression) // Add Expression
 		// r.Get("/tasks", tasks.GetTasksList(logger, store))          // Get Tasks List
 	})
 

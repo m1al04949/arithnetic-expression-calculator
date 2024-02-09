@@ -1,6 +1,10 @@
 env: "local" # local, dev, prod
 storage_path: "./storage/storage.db"
 database_url: "host=localhost user=postgres password=canonfpa dbname=express-calc sslmode=disable"
+operation_sum: 200s
+operation_sub: 200s
+operation_multi: 200s
+operation_devide: 200s
 http_server:
   address : "localhost:8080"
   timeout: 4s
