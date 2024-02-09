@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: canonfpa
+      POSTGRES_DB: express-calc
+    ports:
+      - "5432:5432"
