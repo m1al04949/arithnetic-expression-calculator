@@ -90,38 +90,3 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 		Method:       r.Method,
 	})
 }
-
-// func PostExpression(log *slog.Logger, expSaver ExpSaver) http.HandlerFunc {
-
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		const op = "handlers.postexpression"
-
-// 		log = log.With(
-// 			slog.String("op", op),
-// 			slog.String("request_id", middleware.GetReqID(r.Context())),
-// 		)
-
-// 		var req Request
-
-// 		err := render.DecodeJSON(r.Body, &req)
-// 		if err != nil {
-// 			log.Error("failed to decode request body")
-// 			render.JSON(w, r, response.Error("failed to decode request"))
-// 			return
-// 		}
-
-// 		log.Info("request body decoded", slog.Any("request", req))
-
-// 		//Validate expression
-
-// 		//Add expression to DB
-
-// 		// log.Info("expression added", slog.Int("id", id))
-
-// 		render.JSON(w, r, Response{
-// 			Response: response.OK(),
-// 			// ExpressionID: id,
-// 			Method: r.Method,
-// 		})
-// 	}
-// }
