@@ -50,8 +50,12 @@ func RunServer() error {
 	router.Route("/", func(r chi.Router) {
 		// r.Get("/", expHandler.GetMainPage) // Start Page
 		r.Post("/", expHandler.PostExpression) // Add Expression
-		// r.Get("/tasks", tasks.GetTasksList(logger, store))          // Get Tasks List
+		// r.Get("/tasks", tasks.GetTasksList(logger, store)) // Get Tasks List
 	})
+
+	// Check new expressions, parsing and calculate
+	done := make(chan struct{})
+	go orchRepository.Processing(cfg.ProcessingInterval, done)
 
 	// Start HTTP Server
 	logger.Info("starting server address", slog.String("address", cfg.Address))

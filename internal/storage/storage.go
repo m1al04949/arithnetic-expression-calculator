@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/model"
 )
 
 type Storage struct {
@@ -18,10 +19,18 @@ type Storer interface {
 	CreateTabs() error
 	Open() error
 	ExpressionSave(string) (int, error)
+	GetNewExpression() (model.ExpressionTab, error)
+	UpdateStatus(model.ExpressionTab, string) error
 }
 
 var (
 	ErreExpExists = errors.New("expression exists")
+)
+
+const (
+	StatusNew      = "new"
+	StatusProcess  = "in processing"
+	StatusComplete = "completed"
 )
 
 // Get instance
@@ -75,7 +84,7 @@ func (s *Storage) CreateTabs() error {
 
 func (s *Storage) ExpressionSave(expression string) (int, error) {
 
-	const op = "storage.SaveUser"
+	// const op = "storage.SaveUser"
 
 	// m := &model.Users{
 	// 	UserID: userToSave,
@@ -101,4 +110,18 @@ func (s *Storage) ExpressionSave(expression string) (int, error) {
 	// }
 
 	return 0, nil
+}
+
+func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {
+
+	// Делаем выборку выражение с status = "New"
+
+	return model.ExpressionTab{}, nil
+}
+
+func (s *Storage) UpdateStatus(exp model.ExpressionTab, newStatus string) error {
+
+	// Обновляем статус у выражения
+
+	return nil
 }
