@@ -14,12 +14,17 @@ type Config struct {
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	DatabaseURL string `yaml:"database_url" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
+	Timeouts
 }
 
 type HTTPServer struct {
 	Address     string        `yaml:"address" env-default:"localhost:8080"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+}
+
+type Timeouts struct {
+	ProcessingInterval time.Duration `yaml:"process_interval"`
 }
 
 func LoadCfg() *Config {
