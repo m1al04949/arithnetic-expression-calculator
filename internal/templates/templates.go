@@ -2,6 +2,8 @@ package templates
 
 import (
 	"html/template"
+	"os"
+	"path/filepath"
 
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 )
@@ -11,8 +13,14 @@ type Template struct {
 }
 
 func New(cfg config.Config) (*Template, error) {
+	// Path to HTML-file
+	mainPath := "/internal/templates/main/index.html"
 
-	mainPage, err := template.ParseFiles("путь до шаблона")
+	// Get Template Path
+	currDir, _ := os.Getwd()
+	projectDir := filepath.Join(currDir, "..", "..")
+	templateMainPath := filepath.Join(projectDir, mainPath)
+	mainPage, err := template.ParseFiles(templateMainPath)
 	if err != nil {
 		return nil, err
 	}
