@@ -24,7 +24,11 @@ type HTTPServer struct {
 }
 
 type Timeouts struct {
-	ProcessingInterval time.Duration `yaml:"process_interval"`
+	ProcessingInterval  time.Duration `yaml:"process_interval"`
+	OperatinSumInterval time.Duration `yaml:"operation_sum"`
+	OperatinSubInterval time.Duration `yaml:"operation_sub"`
+	OperatinMulInterval time.Duration `yaml:"operation_mul"`
+	OperatinDivInterval time.Duration `yaml:"operation_div"`
 }
 
 func LoadCfg() *Config {
