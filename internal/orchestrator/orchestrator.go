@@ -62,8 +62,9 @@ func RunServer() error {
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
-		r.Get("/", pageHandler.GetMainPage)    // Get Main Page
-		r.Post("/", expHandler.PostExpression) // Add Expression
+		r.Get("/", pageHandler.GetMainPage)             // Get Main Page
+		r.Post("/", expHandler.PostExpression)          // Add Expression
+		r.Get("/settings", pageHandler.GetSettingsPage) // Get Settings Page
 		// r.Get("/tasks", tasks.GetTasksList(logger, store)) // Get Tasks List
 	})
 
