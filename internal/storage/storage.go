@@ -84,11 +84,12 @@ func (s *Storage) CreateTabs() error {
 
 func (s *Storage) ExpressionSave(expression string) (int, error) {
 
-	// const op = "storage.SaveUser"
+	const op = "storage.ExpressionSave"
 
-	// m := &model.Users{
-	// 	UserID: userToSave,
-	// }
+	m := &model.ExpressionTab{
+		Expression: expression,
+		Status:     StatusNew,
+	}
 
 	// if err := s.db.QueryRow("SELECT (created_at) FROM users WHERE user_id=$1",
 	// 	userToSave).Scan(&m.CreatedAt); err != nil {
@@ -98,18 +99,23 @@ func (s *Storage) ExpressionSave(expression string) (int, error) {
 	// 	}
 	// 	defer stmt.Close()
 
-	// 	_, err = stmt.Exec(userToSave)
-	// 	if err != nil {
-	// 		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code == "23505" {
-	// 			return fmt.Errorf("%s: %w, created at %s", op, ErrUserExists, m.CreatedAt)
-	// 		}
-	// 		return fmt.Errorf("%s: %w", op, err)
-	// 	}
-	// } else {
-	// 	return fmt.Errorf("%s: %w, created at %s", op, ErrUserExists, m.CreatedAt)
-	// }
+	stmt, err := s.db.Prepare("INSERT INTO expressions(expression, status) VALUES ($1, $2);")
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+	defer stmt.Close()
 
-	return 0, nil
+	_, err = stmt.Exec(m.Expression, m.Status)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.db.QueryRow("SELECT lastval()").Scan(&m.ID)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return m.ID, nil
 }
 
 func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {

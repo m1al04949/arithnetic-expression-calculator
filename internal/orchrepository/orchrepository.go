@@ -23,14 +23,14 @@ func New(log *slog.Logger, store storage.Storer) *OrchRepository {
 
 func (o *OrchRepository) CheckExpression(expression string) (bool, error) {
 
-	return false, nil
+	return true, nil
 }
 
 func (o *OrchRepository) CheckExpOnDb(expression string) (bool, error) {
 
 	//Проверка значения в базе. И если есть, то какой его статус
 
-	return false, nil
+	return true, nil
 }
 
 func (o *OrchRepository) AddExpression(expression string) (int, error) {

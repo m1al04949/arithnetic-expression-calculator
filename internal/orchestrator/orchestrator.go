@@ -10,8 +10,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/expressions"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/pages"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/orchrepository"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/pagesrepository"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/storage"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/templates"
 )
 
 func RunServer() error {
@@ -36,10 +39,21 @@ func RunServer() error {
 	}
 	logger.Info("storage is initialized")
 
-	//Init Repository
+	// Templates Initializing
+	templates, err := templates.New(*cfg)
+	if err != nil {
+		logger.Error("failed to init templates")
+		return err
+	}
+	logger.Info("templates is initialized")
+
+	//Init Repositories
 	orchRepository := orchrepository.New(logger, store)
+	pagesRepository := pagesrepository.New(logger, templates)
+
+	// Init Handlers
 	expHandler := expressions.New(*orchRepository)
-	// pageHandler := pages.New(*orchRepository)
+	pageHandler := pages.New(*pagesRepository)
 
 	// Router Initiziling
 	router := chi.NewRouter()
@@ -48,7 +62,7 @@ func RunServer() error {
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
-		// r.Get("/", expHandler.GetMainPage) // Start Page
+		r.Get("/", pageHandler.GetMainPage)    // Get Main Page
 		r.Post("/", expHandler.PostExpression) // Add Expression
 		// r.Get("/tasks", tasks.GetTasksList(logger, store)) // Get Tasks List
 	})

@@ -44,12 +44,7 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 
 	var req Request
 
-	err := render.DecodeJSON(r.Body, &req)
-	if err != nil {
-		h.OrchRepository.Log.Error("failed to decode request body")
-		render.JSON(w, r, response.ErrorRequest("failed to decode request"))
-		return
-	}
+	req.Expression = r.FormValue("expression")
 
 	h.OrchRepository.Log.Info("request body decoded", slog.Any("request", req))
 
@@ -78,15 +73,18 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 	//Add expression to DB
 	id, err := h.OrchRepository.AddExpression(req.Expression)
 	if err != nil {
-		render.JSON(w, r, response.ErrorServer("server internal error"))
+		render.JSON(w, r, response.ErrorServer(err.Error()))
 		return
 	}
 
 	h.OrchRepository.Log.Info("expression added", slog.Int("id", id))
 
-	render.JSON(w, r, Response{
-		Response:     response.OK(),
-		ExpressionID: id,
-		Method:       r.Method,
-	})
+	// render.JSON(w, r, Response{
+	// 	Response:     response.OK(),
+	// 	ExpressionID: id,
+	// 	Method:       r.Method,
+	// })
+
+	// Перенаправление на предыдущую страницу
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusFound)
 }
