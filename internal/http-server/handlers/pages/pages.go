@@ -42,3 +42,21 @@ func (h *PagesHandle) GetMainPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *PagesHandle) GetSettingsPage(w http.ResponseWriter, r *http.Request) {
+	const op = "handlers.getsettingspage"
+
+	h.PagesRepository.Log = h.PagesRepository.Log.With(
+		slog.String("op", op),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	data := "Settings Page"
+
+	err := h.PagesRepository.Templates.Settings.Execute(w, data)
+	if err != nil {
+		h.PagesRepository.Log.Error("failed to download settings page")
+		render.JSON(w, r, response.ErrorRequest("failed to download settings page"))
+		return
+	}
+}

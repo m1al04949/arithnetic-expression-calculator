@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Время выполнения операций</title>
+</head>
+<body>
+    <h1>Время выполнения операций</h1>
+    <form id="timeForm" action="/settings" method="post">
+        <label for="addition_time">Время выполнения операции +:</label><br>
+        <input type="text" id="addition_time" name="addition_time" required><br><br>
+
+        <label for="subtraction_time">Время выполнения операции -:</label><br>
+        <input type="text" id="subtraction_time" name="subtraction_time" required><br><br>
+
+        <label for="multiplication_time">Время выполнения операции *:</label><br>
+        <input type="text" id="multiplication_time" name="multiplication_time" required><br><br>
+
+        <label for="division_time">Время выполнения операции /:</label><br>
+        <input type="text" id="division_time" name="division_time" required><br><br>
+
+        <button type="submit">Применить</button>
+    </form>
+
+    <form action="/" method="get">
+        <button type="submit">Назад</button>
+    </form>
+
+    <script>
+        // Функция для установки значений в поля ввода
+        function setDefaultValues() {
+            // Получаем элементы формы
+            var form = document.getElementById("timeForm");
+
+            // Устанавливаем значения в поля ввода
+            form.elements["addition_time"].value = "10";
+            form.elements["subtraction_time"].value = "5";
+            form.elements["multiplication_time"].value = "20";
+            form.elements["division_time"].value = "15";
+        }
+
+        // Вызываем функцию после загрузки страницы
+        window.onload = function() {
+            setDefaultValues();
+        };
+    </script>
+</body>
+</html>
