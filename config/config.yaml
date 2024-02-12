@@ -4,9 +4,9 @@ database_url: "host=localhost user=postgres password=canonfpa dbname=express-cal
 timeouts:
   process_interval: 60s
   operation_sum: 200s
-  operation_sub: 200s
-  operation_multi: 200s
-  operation_devide: 200s
+  operation_sub: 205s
+  operation_mul: 210s
+  operation_div: 220s
 http_server:
   address : "localhost:8080"
   timeout: 4s
