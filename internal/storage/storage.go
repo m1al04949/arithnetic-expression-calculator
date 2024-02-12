@@ -19,6 +19,7 @@ type Storer interface {
 	CreateTabs() error
 	Open() error
 	ExpressionSave(string) (int, error)
+	GetAllExpressions() []model.ExpressionTab
 	GetNewExpression() (model.ExpressionTab, error)
 	UpdateStatus(model.ExpressionTab, string) error
 }
@@ -73,7 +74,8 @@ func (s *Storage) CreateTabs() error {
 		id SERIAL PRIMARY KEY,
 		added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		expression TEXT,
-		status TEXT NOT NULL);
+		status TEXT NOT NULL,
+		result FLOAT);
 		`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -116,6 +118,19 @@ func (s *Storage) ExpressionSave(expression string) (int, error) {
 	}
 
 	return m.ID, nil
+}
+
+func (s *Storage) GetAllExpressions() []model.ExpressionTab {
+
+	// Выполняем запрос к базе данных
+	// rows, err := s.db.Query("SELECT id, added, expression, status, result FROM expressions")
+	// if err != nil {
+	//     http.Error(w, "Ошибка при выполнении запроса к базе данных", http.StatusInternalServerError)
+	//     return
+	// }
+	// defer rows.Close()
+
+	return nil
 }
 
 func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {

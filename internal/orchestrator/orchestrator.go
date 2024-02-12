@@ -49,7 +49,7 @@ func RunServer() error {
 
 	//Init Repositories
 	orchRepository := orchrepository.New(logger, store)
-	pagesRepository := pagesrepository.New(logger, templates)
+	pagesRepository := pagesrepository.New(logger, templates, cfg, store)
 
 	// Init Handlers
 	expHandler := expressions.New(*orchRepository)
@@ -62,9 +62,11 @@ func RunServer() error {
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
-		r.Get("/", pageHandler.GetMainPage)             // Get Main Page
-		r.Post("/", expHandler.PostExpression)          // Add Expression
-		r.Get("/settings", pageHandler.GetSettingsPage) // Get Settings Page
+		r.Get("/", pageHandler.GetMainPage)               // Get Main Page
+		r.Post("/", expHandler.PostExpression)            // Add Expression
+		r.Get("/settings", pageHandler.GetSettingsPage)   // Get Settings Page
+		r.Post("/settings", pageHandler.SetSettingsPage)  // Post Settings Page
+		r.Get("/expressions", pageHandler.GetExpressions) // Get Settings Page
 		// r.Get("/tasks", tasks.GetTasksList(logger, store)) // Get Tasks List
 	})
 
