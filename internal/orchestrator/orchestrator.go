@@ -66,8 +66,8 @@ func RunServer() error {
 		r.Post("/", expHandler.PostExpression)            // Add Expression
 		r.Get("/settings", pageHandler.GetSettingsPage)   // Get Settings Page
 		r.Post("/settings", pageHandler.SetSettingsPage)  // Post Settings Page
-		r.Get("/expressions", pageHandler.GetExpressions) // Get Settings Page
-		// r.Get("/tasks", tasks.GetTasksList(logger, store)) // Get Tasks List
+		r.Get("/expressions", pageHandler.GetExpressions) // Get All Expressions
+		// r.Get("/tasks", pageHandler.GetTasks)             // Get Tasks List
 	})
 
 	// Check new expressions, parsing and calculate

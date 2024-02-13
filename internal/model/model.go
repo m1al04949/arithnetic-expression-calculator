@@ -7,5 +7,5 @@ type ExpressionTab struct {
 	Added      time.Time
 	Expression string
 	Status     string
-	Resul      float64
+	Result     float64
 }

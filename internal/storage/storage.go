@@ -19,7 +19,7 @@ type Storer interface {
 	CreateTabs() error
 	Open() error
 	ExpressionSave(string) (int, error)
-	GetAllExpressions() []model.ExpressionTab
+	GetAllExpressions() ([]model.ExpressionTab, error)
 	GetNewExpression() (model.ExpressionTab, error)
 	UpdateStatus(model.ExpressionTab, string) error
 }
@@ -75,7 +75,7 @@ func (s *Storage) CreateTabs() error {
 		added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		expression TEXT,
 		status TEXT NOT NULL,
-		result FLOAT);
+		result FLOAT DEFAULT 0);
 		`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -92,14 +92,6 @@ func (s *Storage) ExpressionSave(expression string) (int, error) {
 		Expression: expression,
 		Status:     StatusNew,
 	}
-
-	// if err := s.db.QueryRow("SELECT (created_at) FROM users WHERE user_id=$1",
-	// 	userToSave).Scan(&m.CreatedAt); err != nil {
-	// 	stmt, err := s.db.Prepare("INSERT INTO users(user_id) VALUES ($1)")
-	// 	if err != nil {
-	// 		return fmt.Errorf("%s: %w", op, err)
-	// 	}
-	// 	defer stmt.Close()
 
 	stmt, err := s.db.Prepare("INSERT INTO expressions(expression, status) VALUES ($1, $2);")
 	if err != nil {
@@ -120,17 +112,34 @@ func (s *Storage) ExpressionSave(expression string) (int, error) {
 	return m.ID, nil
 }
 
-func (s *Storage) GetAllExpressions() []model.ExpressionTab {
+func (s *Storage) GetAllExpressions() ([]model.ExpressionTab, error) {
 
-	// Выполняем запрос к базе данных
-	// rows, err := s.db.Query("SELECT id, added, expression, status, result FROM expressions")
-	// if err != nil {
-	//     http.Error(w, "Ошибка при выполнении запроса к базе данных", http.StatusInternalServerError)
-	//     return
-	// }
-	// defer rows.Close()
+	const op = "storage.getallexpressions"
 
-	return nil
+	rows, err := s.db.Query("SELECT id, added_at, expression, status, result FROM expressions")
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	// Создаем слайс для хранения результатов
+	var expressions []model.ExpressionTab
+
+	// Итерируем по результатам запроса
+	for rows.Next() {
+		var expression model.ExpressionTab
+		err := rows.Scan(&expression.ID, &expression.Added, &expression.Expression, &expression.Status, &expression.Result)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		expressions = append(expressions, expression)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return expressions, nil
 }
 
 func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {

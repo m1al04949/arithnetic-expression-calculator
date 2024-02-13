@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/response"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/model"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/pagesrepository"
 )
 
@@ -28,10 +29,7 @@ type RequestSettings struct {
 }
 
 type RequestExpressions struct {
-	Number     int
-	Expression string
-	Status     string
-	Result     float64
+	Expressions []model.ExpressionTab
 }
 
 func New(pagesrep pagesrepository.PagesRepository) *PagesHandle {
@@ -141,12 +139,19 @@ func (h *PagesHandle) GetExpressions(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	data := "Expressions Page"
+	expressions, err := h.PagesRepository.Store.GetAllExpressions()
+	if err != nil {
+		render.JSON(w, r, response.ErrorRequest("failed to download expressions page"+err.Error()))
+	}
 
-	err := h.PagesRepository.Templates.Expressions.Execute(w, data)
+	data := RequestExpressions{
+		Expressions: expressions,
+	}
+
+	err = h.PagesRepository.Templates.Expressions.Execute(w, data)
 	if err != nil {
 		h.PagesRepository.Log.Error("failed to download expressions page")
-		render.JSON(w, r, response.ErrorRequest("failed to download expressions page"))
+		render.JSON(w, r, response.ErrorRequest("failed to download expressions page"+err.Error()))
 		return
 	}
 }
