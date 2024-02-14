@@ -144,14 +144,28 @@ func (s *Storage) GetAllExpressions() ([]model.ExpressionTab, error) {
 
 func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {
 
-	// Делаем выборку выражение с status = "New"
+	const op = "storage.getnewexpression"
 
-	return model.ExpressionTab{}, nil
+	// Делаем выборку выражение с status = "new"
+	var row model.ExpressionTab
+
+	err := s.db.QueryRow("SELECT * FROM expressions WHERE status = $1 ORDER BY id LIMIT 1", StatusNew).Scan(&row.ID, &row.Added, &row.Expression, &row.Status, &row.Result)
+	if err != nil {
+		return model.ExpressionTab{}, err
+	}
+
+	return row, nil
 }
 
 func (s *Storage) UpdateStatus(exp model.ExpressionTab, newStatus string) error {
 
+	const op = "storage.updatestatus"
+
 	// Обновляем статус у выражения
+	_, err := s.db.Exec("UPDATE expressions SET status = $1 WHERE id = $2", StatusProcess, exp.ID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
 	return nil
 }

@@ -72,7 +72,7 @@ func RunServer() error {
 
 	// Check new expressions, parsing and calculate
 	done := make(chan struct{})
-	go orchRepository.Processing(cfg.ProcessingInterval, done)
+	go orchRepository.Processing(logger, cfg.ProcessingInterval, done)
 
 	// Start HTTP Server
 	logger.Info("starting server address", slog.String("address", cfg.Address))

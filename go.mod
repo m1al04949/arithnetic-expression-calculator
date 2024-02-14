@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/lib/pq v1.10.9
+	github.com/mgenware/go-shunting-yard v0.0.0-20170306102834-6dc682c5e09c
 )
 
 require (
