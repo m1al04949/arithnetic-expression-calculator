@@ -23,6 +23,9 @@ type Results struct {
 type Agenter interface {
 	CalculateExpression(parser.ParsingExpression) chan Results
 	Operation(a, b int, oper string) (float64, error)
+	DecrementWorkers()
+	IncrementWorkers()
+	CheckWorkers() bool
 }
 
 func New(w int, timeSum, timeSub, timeMul, timeDiv time.Duration) Agenter {
@@ -92,4 +95,16 @@ func (ag *Agent) Operation(a, b int, oper string) (float64, error) {
 	default:
 		return 0, errors.New("Unknown operator: " + oper)
 	}
+}
+
+func (ag *Agent) DecrementWorkers() {
+	ag.Workers = ag.Workers - 1
+}
+
+func (ag *Agent) IncrementWorkers() {
+	ag.Workers = ag.Workers + 1
+}
+
+func (ag *Agent) CheckWorkers() bool {
+	return ag.Workers > 0
 }
