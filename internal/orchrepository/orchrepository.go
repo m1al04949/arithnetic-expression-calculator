@@ -24,9 +24,37 @@ func New(log *slog.Logger, store storage.Storer, agent agent.Agenter) *OrchRepos
 	}
 }
 
-func (o *OrchRepository) CheckExpression(expression string) (bool, error) {
+func (o *OrchRepository) CheckExpression(expression string) bool {
+	// Стэк для проверки скобок и корректности операндов
+	stack := make([]rune, 0)
 
-	return true, nil
+	for _, char := range expression {
+		if char == '(' {
+			stack = append(stack, '(')
+		} else if char == ')' {
+			if len(stack) == 0 || stack[len(stack)-1] != '(' {
+				// некорректно расставлены скобки
+				return false
+			}
+			stack = stack[:len(stack)-1]
+		} else if char == '+' || char == '-' || char == '*' || char == '/' {
+			if len(stack) != 0 && (stack[len(stack)-1] == '+' || stack[len(stack)-1] == '-' || stack[len(stack)-1] == '*' || stack[len(stack)-1] == '/') {
+				// повторяющийся операнд
+				return false
+			}
+			stack = append(stack, char)
+		} else if char >= '0' && char <= '9' {
+			continue
+		} else {
+			return false // неизвестный символ
+		}
+	}
+
+	if len(stack) != 0 {
+		return false // некорректно расставлены скобки
+	}
+
+	return true
 }
 
 func (o *OrchRepository) CheckExpOnDb(expression string) (bool, error) {
@@ -77,12 +105,17 @@ func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, do
 				println(err.Error())
 			}
 
+			for !o.Agent.CheckWorkers() {
+				time.Sleep(5 * time.Second)
+			}
 			go func() {
+				o.Agent.DecrementWorkers()
 				resultExp := o.Agent.CalculateExpression(parsExp)
 				resultChan <- <-resultExp
 			}()
 
 		case result := <-resultChan:
+			o.Agent.IncrementWorkers()
 			err := o.Store.UpdateResult(result.ID, result.Result)
 			if err != nil {
 				println(err.Error())
