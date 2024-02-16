@@ -49,14 +49,14 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 	h.OrchRepository.Log.Info("request body decoded", slog.Any("request", req))
 
 	//Validate expression
-	check := h.OrchRepository.CheckExpression(req.Expression)
+	err, check := h.OrchRepository.CheckExpression(req.Expression)
 	if !check {
-		render.JSON(w, r, response.ErrorExpression("bad expression"))
+		render.JSON(w, r, response.ErrorExpression("bad expression: "+err.Error()))
 		return
 	}
 
 	//Check expression on DB
-	check, err := h.OrchRepository.CheckExpOnDb(req.Expression)
+	check, err = h.OrchRepository.CheckExpOnDb(req.Expression)
 	if err != nil {
 		render.JSON(w, r, response.ErrorServer("server internal error"))
 		return

@@ -55,7 +55,7 @@ func RunServer() error {
 
 	//Init Repositories
 	orchRepository := orchrepository.New(logger, store, agent)
-	pagesRepository := pagesrepository.New(logger, templates, cfg, store)
+	pagesRepository := pagesrepository.New(logger, templates, cfg, store, agent)
 
 	// Init Handlers
 	expHandler := expressions.New(*orchRepository)
@@ -73,7 +73,7 @@ func RunServer() error {
 		r.Get("/settings", pageHandler.GetSettingsPage)   // Get Settings Page
 		r.Post("/settings", pageHandler.SetSettingsPage)  // Post Settings Page
 		r.Get("/expressions", pageHandler.GetExpressions) // Get All Expressions
-		// r.Get("/tasks", pageHandler.GetTasks)             // Get Tasks List
+		r.Get("/tasks", pageHandler.GetTasks)             // Get Tasks List
 	})
 
 	// Check new expressions, parsing and calculate

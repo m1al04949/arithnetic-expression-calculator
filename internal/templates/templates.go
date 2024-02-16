@@ -12,6 +12,7 @@ type Template struct {
 	Main        template.Template
 	Settings    template.Template
 	Expressions template.Template
+	Tasks       template.Template
 }
 
 func New(cfg config.Config) (*Template, error) {
@@ -19,6 +20,7 @@ func New(cfg config.Config) (*Template, error) {
 	mainPath := "/internal/templates/main/index.html"
 	settingPath := "/internal/templates/settings/settings.html"
 	expressionsPath := "/internal/templates/expressions/expressions.html"
+	tasksPath := "/internal/templates/tasks/tasks.html"
 
 	// Get Template Path
 	currDir, _ := os.Getwd()
@@ -42,9 +44,16 @@ func New(cfg config.Config) (*Template, error) {
 		return nil, err
 	}
 
+	templateTasksPath := filepath.Join(projectDir, tasksPath)
+	tasksPage, err := template.ParseFiles(templateTasksPath)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Template{
 		Main:        *mainPage,
 		Settings:    *settingsPage,
 		Expressions: *expressionsPage,
+		Tasks:       *tasksPage,
 	}, nil
 }

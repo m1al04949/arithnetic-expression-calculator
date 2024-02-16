@@ -32,6 +32,10 @@ type RequestExpressions struct {
 	Expressions []model.ExpressionTab
 }
 
+type RequestTasks struct {
+	Workers int
+}
+
 func New(pagesrep pagesrepository.PagesRepository) *PagesHandle {
 	return &PagesHandle{
 		PagesRepository: pagesrep,
@@ -121,8 +125,6 @@ func (h *PagesHandle) SetSettingsPage(w http.ResponseWriter, r *http.Request) {
 	h.PagesRepository.Config.Timeouts.OperationMulInterval = req.OperationMul
 	h.PagesRepository.Config.Timeouts.OperationDivInterval = req.OperationDiv
 
-	// data := "Settings Page"
-
 	err = h.PagesRepository.Templates.Settings.Execute(w, h.PagesRepository.Config.Timeouts)
 	if err != nil {
 		h.PagesRepository.Log.Error("failed to download settings page")
@@ -152,6 +154,28 @@ func (h *PagesHandle) GetExpressions(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.PagesRepository.Log.Error("failed to download expressions page")
 		render.JSON(w, r, response.ErrorRequest("failed to download expressions page"+err.Error()))
+		return
+	}
+}
+
+func (h *PagesHandle) GetTasks(w http.ResponseWriter, r *http.Request) {
+	const op = "handlers.gettasks"
+
+	h.PagesRepository.Log = h.PagesRepository.Log.With(
+		slog.String("op", op),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	count, _ := h.PagesRepository.Agent.CheckWorkers()
+
+	workers := RequestTasks{
+		Workers: count,
+	}
+
+	err := h.PagesRepository.Templates.Tasks.Execute(w, workers)
+	if err != nil {
+		h.PagesRepository.Log.Error("failed to download settings page")
+		render.JSON(w, r, response.ErrorRequest("failed to download settings page"))
 		return
 	}
 }

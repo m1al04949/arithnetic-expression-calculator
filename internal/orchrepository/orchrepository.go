@@ -2,8 +2,10 @@ package orchrepository
 
 import (
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"time"
+	"unicode"
 
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/agent"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/parser"
@@ -24,37 +26,23 @@ func New(log *slog.Logger, store storage.Storer, agent agent.Agenter) *OrchRepos
 	}
 }
 
-func (o *OrchRepository) CheckExpression(expression string) bool {
-	// Стэк для проверки скобок и корректности операндов
-	stack := make([]rune, 0)
+func (o *OrchRepository) CheckExpression(expression string) (error, bool) {
+	prevCharIsOperator := true // Переменная для отслеживания, является ли предыдущий символ оператором
 
 	for _, char := range expression {
-		if char == '(' {
-			stack = append(stack, '(')
-		} else if char == ')' {
-			if len(stack) == 0 || stack[len(stack)-1] != '(' {
-				// некорректно расставлены скобки
-				return false
+		if char == '(' || char == ')' {
+			return fmt.Errorf("в выражении содержатся скобки"), false
+		} else if !unicode.IsDigit(char) && !unicode.IsSpace(char) {
+			if prevCharIsOperator {
+				return fmt.Errorf("выражение содержит подряд идущие операторы"), false
 			}
-			stack = stack[:len(stack)-1]
-		} else if char == '+' || char == '-' || char == '*' || char == '/' {
-			if len(stack) != 0 && (stack[len(stack)-1] == '+' || stack[len(stack)-1] == '-' || stack[len(stack)-1] == '*' || stack[len(stack)-1] == '/') {
-				// повторяющийся операнд
-				return false
-			}
-			stack = append(stack, char)
-		} else if char >= '0' && char <= '9' {
-			continue
-		} else {
-			return false // неизвестный символ
+			prevCharIsOperator = true
+		} else if unicode.IsDigit(char) {
+			prevCharIsOperator = false
 		}
 	}
 
-	if len(stack) != 0 {
-		return false // некорректно расставлены скобки
-	}
-
-	return true
+	return nil, true
 }
 
 func (o *OrchRepository) CheckExpOnDb(expression string) (bool, error) {
@@ -105,7 +93,11 @@ func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, do
 				println(err.Error())
 			}
 
-			for !o.Agent.CheckWorkers() {
+			for {
+				_, ok := o.Agent.CheckWorkers()
+				if ok {
+					break
+				}
 				time.Sleep(5 * time.Second)
 			}
 			go func() {

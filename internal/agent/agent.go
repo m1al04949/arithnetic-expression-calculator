@@ -25,7 +25,7 @@ type Agenter interface {
 	Operation(a, b int, oper string) (float64, error)
 	DecrementWorkers()
 	IncrementWorkers()
-	CheckWorkers() bool
+	CheckWorkers() (int, bool)
 }
 
 func New(w int, timeSum, timeSub, timeMul, timeDiv time.Duration) Agenter {
@@ -105,6 +105,6 @@ func (ag *Agent) IncrementWorkers() {
 	ag.Workers = ag.Workers + 1
 }
 
-func (ag *Agent) CheckWorkers() bool {
-	return ag.Workers > 0
+func (ag *Agent) CheckWorkers() (int, bool) {
+	return ag.Workers, ag.Workers > 0
 }
