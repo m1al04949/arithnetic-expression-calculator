@@ -2,25 +2,25 @@ package orchrepository
 
 import (
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"time"
 
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/agent"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/parser"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/storage"
-	"github.com/m1al04949/arithnetic-expression-calculator/internal/templates"
 )
 
 type OrchRepository struct {
-	Log       *slog.Logger
-	Store     storage.Storer
-	Templates *templates.Template
+	Log   *slog.Logger
+	Store storage.Storer
+	Agent agent.Agenter
 }
 
-func New(log *slog.Logger, store storage.Storer) *OrchRepository {
+func New(log *slog.Logger, store storage.Storer, agent agent.Agenter) *OrchRepository {
 	return &OrchRepository{
 		Log:   log,
 		Store: store,
+		Agent: agent,
 	}
 }
 
@@ -49,7 +49,7 @@ func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, do
 	// Отправляем задания агенту
 
 	log.Info("processing started")
-
+	resultChan := make(chan agent.Results)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -76,16 +76,21 @@ func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, do
 			if err != nil {
 				println(err.Error())
 			}
-			for _, t := range parsExp.Expressions {
-				fmt.Printf("%v ", t.GetDescription())
+
+			go func() {
+				resultExp := o.Agent.CalculateExpression(parsExp)
+				resultChan <- <-resultExp
+			}()
+
+		case result := <-resultChan:
+			err := o.Store.UpdateResult(result.ID, result.Result)
+			if err != nil {
+				println(err.Error())
+				return
 			}
-
-			// передаём части выражения Агенту
-
 		// Ожидаем завершения работы, если получили сигнал через канал done
 		case <-done:
 			return
 		}
 	}
-
 }

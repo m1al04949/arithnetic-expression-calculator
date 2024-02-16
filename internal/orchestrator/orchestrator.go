@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/agent"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/expressions"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/pages"
@@ -47,8 +48,13 @@ func RunServer() error {
 	}
 	logger.Info("templates is initialized")
 
+	// Init Agent
+	agent := agent.New(cfg.Workers, cfg.OperationSumInterval, cfg.OperationSubInterval,
+		cfg.OperationMulInterval, cfg.OperationDivInterval)
+	logger.Info("agent is initialized")
+
 	//Init Repositories
-	orchRepository := orchrepository.New(logger, store)
+	orchRepository := orchrepository.New(logger, store, agent)
 	pagesRepository := pagesrepository.New(logger, templates, cfg, store)
 
 	// Init Handlers

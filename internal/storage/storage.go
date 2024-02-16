@@ -22,6 +22,8 @@ type Storer interface {
 	GetAllExpressions() ([]model.ExpressionTab, error)
 	GetNewExpression() (model.ExpressionTab, error)
 	UpdateStatus(model.ExpressionTab, string) error
+	UpdateResult(int, float64) error
+	RefreshStatus() error
 }
 
 var (
@@ -79,6 +81,12 @@ func (s *Storage) CreateTabs() error {
 		`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.RefreshStatus()
+	if err != nil {
+		println(err.Error())
+		return err
 	}
 
 	return nil
@@ -144,7 +152,7 @@ func (s *Storage) GetAllExpressions() ([]model.ExpressionTab, error) {
 
 func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {
 
-	const op = "storage.getnewexpression"
+	// const op = "storage.getnewexpression"
 
 	// Делаем выборку выражение с status = "new"
 	var row model.ExpressionTab
@@ -162,9 +170,53 @@ func (s *Storage) UpdateStatus(exp model.ExpressionTab, newStatus string) error 
 	const op = "storage.updatestatus"
 
 	// Обновляем статус у выражения
-	_, err := s.db.Exec("UPDATE expressions SET status = $1 WHERE id = $2", StatusProcess, exp.ID)
+	_, err := s.db.Exec("UPDATE expressions SET status = $1 WHERE id = $2", newStatus, exp.ID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) UpdateResult(ID int, result float64) error {
+
+	const op = "storage.updateresult"
+
+	// Обновляем статус у выражения
+	_, err := s.db.Exec("UPDATE expressions SET result = $2, status = $3 WHERE id = $1", ID, result, StatusComplete)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) RefreshStatus() error {
+
+	const op = "storage.refreshstatus"
+
+	rows, err := s.db.Query("SELECT id, added_at, expression, status, result FROM expressions WHERE status = $1", StatusProcess)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	// Итерируем по результатам запроса
+	for rows.Next() {
+		var exp model.ExpressionTab
+		err := rows.Scan(&exp.ID, &exp.Added, &exp.Expression, &exp.Status, &exp.Result)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+		err = s.UpdateStatus(exp, StatusNew)
+		if err != nil {
+			println(err.Error())
+			return fmt.Errorf("%s: %w", op, err)
+		}
+		err = rows.Err()
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
 	}
 
 	return nil
