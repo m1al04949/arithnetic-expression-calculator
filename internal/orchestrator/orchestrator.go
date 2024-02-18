@@ -48,9 +48,8 @@ func RunServer() error {
 	}
 	logger.Info("templates is initialized")
 
-	// Init Agent
-	agent := agent.New(cfg.Workers, cfg.OperationSumInterval, cfg.OperationSubInterval,
-		cfg.OperationMulInterval, cfg.OperationDivInterval)
+	// Init Agents
+	agent := agent.New(cfg)
 	logger.Info("agent is initialized")
 
 	//Init Repositories

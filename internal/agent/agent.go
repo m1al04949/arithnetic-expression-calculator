@@ -4,15 +4,12 @@ import (
 	"errors"
 	"time"
 
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/parser"
 )
 
 type Agent struct {
-	Workers int
-	TimeSum time.Duration
-	TimeSub time.Duration
-	TimeMul time.Duration
-	TimeDiv time.Duration
+	Config *config.Config
 }
 
 type Results struct {
@@ -22,19 +19,15 @@ type Results struct {
 
 type Agenter interface {
 	CalculateExpression(parser.ParsingExpression) chan Results
-	Operation(a, b int, oper string) (float64, error)
+	Operation(a, b float64, oper string) (float64, error)
 	DecrementWorkers()
 	IncrementWorkers()
 	CheckWorkers() (int, bool)
 }
 
-func New(w int, timeSum, timeSub, timeMul, timeDiv time.Duration) Agenter {
+func New(cfg *config.Config) Agenter {
 	return &Agent{
-		Workers: w,
-		TimeSum: timeSum,
-		TimeSub: timeSub,
-		TimeMul: timeMul,
-		TimeDiv: timeDiv,
+		Config: cfg,
 	}
 }
 
@@ -56,7 +49,7 @@ func (ag *Agent) CalculateExpression(parsExp parser.ParsingExpression) chan Resu
 				a, b := stack[len(stack)-2], stack[len(stack)-1]
 				stack = stack[:len(stack)-2]
 				//Передача 2 чисел и оператора в вычислитель
-				val, err := ag.Operation(int(a), int(b), token.Value.(string))
+				val, err := ag.Operation(a, b, token.Value.(string))
 				if err != nil {
 					println(err.Error())
 					return
@@ -78,33 +71,33 @@ func (ag *Agent) CalculateExpression(parsExp parser.ParsingExpression) chan Resu
 	return out
 }
 
-func (ag *Agent) Operation(a, b int, oper string) (float64, error) {
+func (ag *Agent) Operation(a, b float64, oper string) (float64, error) {
 	switch oper {
 	case "+":
-		time.Sleep(ag.TimeSum)
-		return float64(a + b), nil
+		time.Sleep(ag.Config.OperationSumInterval)
+		return a + b, nil
 	case "-":
-		time.Sleep(ag.TimeSub)
-		return float64(a - b), nil
+		time.Sleep(ag.Config.OperationSubInterval)
+		return a - b, nil
 	case "*":
-		time.Sleep(ag.TimeMul)
-		return float64(a * b), nil
+		time.Sleep(ag.Config.OperationMulInterval)
+		return a * b, nil
 	case "/":
-		time.Sleep(ag.TimeDiv)
-		return float64(a / b), nil
+		time.Sleep(ag.Config.OperationDivInterval)
+		return a / b, nil
 	default:
 		return 0, errors.New("Unknown operator: " + oper)
 	}
 }
 
 func (ag *Agent) DecrementWorkers() {
-	ag.Workers = ag.Workers - 1
+	ag.Config.Workers = ag.Config.Workers - 1
 }
 
 func (ag *Agent) IncrementWorkers() {
-	ag.Workers = ag.Workers + 1
+	ag.Config.Workers = ag.Config.Workers + 1
 }
 
 func (ag *Agent) CheckWorkers() (int, bool) {
-	return ag.Workers, ag.Workers > 0
+	return ag.Config.Workers, ag.Config.Workers > 0
 }

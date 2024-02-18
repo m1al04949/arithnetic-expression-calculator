@@ -79,18 +79,13 @@ func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, do
 				if err != sql.ErrNoRows {
 					return
 				}
-			} else {
-				// обновляем статус
-				err = o.Store.UpdateStatus(exp, storage.StatusProcess)
-				if err != nil {
-					println("error on DB")
-				}
 			}
 
 			// парсинг выражения на части
 			parsExp, err := parser.Parsing(exp.ID, exp.Expression)
 			if err != nil {
 				println(err.Error())
+				return
 			}
 
 			for {
@@ -100,6 +95,14 @@ func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, do
 				}
 				time.Sleep(5 * time.Second)
 			}
+
+			// обновляем статус
+			err = o.Store.UpdateStatus(exp, storage.StatusProcess)
+			if err != nil {
+				println("error on DB")
+				return
+			}
+
 			go func() {
 				o.Agent.DecrementWorkers()
 				resultExp := o.Agent.CalculateExpression(parsExp)
