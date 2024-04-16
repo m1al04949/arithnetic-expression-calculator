@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/response"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/model"
-	"github.com/m1al04949/arithnetic-expression-calculator/internal/pagesrepository"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/pagesrepository"
 )
 
 type PagesHandle struct {

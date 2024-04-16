@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -32,7 +31,8 @@ type Timeouts struct {
 	OperationDivInterval time.Duration `yaml:"operation_div"`
 }
 
-func LoadCfg() *Config {
+func MustLoadCfg() *Config {
+
 	// Path to YAML file in project's directory
 	path := "/config/config.yaml"
 
@@ -41,19 +41,19 @@ func LoadCfg() *Config {
 	projectDir := filepath.Join(currDir, "..", "..")
 	configPath := filepath.Join(projectDir, path)
 	if configPath == "" {
-		log.Fatal("config path is not set")
+		panic("config path is not set")
 	}
 
 	// Check if file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("config file does not exist: %s", configPath)
+		panic("config file does not exist: " + configPath)
 	}
 
 	var cfg Config
 
 	// Reading config
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatalf("cannot read config: %s", err)
+		panic("cannot read config: " + err.Error())
 	}
 
 	return &cfg

@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/response"
-	"github.com/m1al04949/arithnetic-expression-calculator/internal/orchrepository"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/orchrepository"
 )
 
 type ExpressionHandle struct {

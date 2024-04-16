@@ -89,6 +89,18 @@ func (s *Storage) CreateTabs() error {
 		return err
 	}
 
+	_, err = s.db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+		user_id SERIAL PRIMARY KEY,
+		login VARCHAR(255) UNIQUE NOT NULL,
+		password_hash VARCHAR(255) NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+	`)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }
 
