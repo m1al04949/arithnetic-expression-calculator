@@ -1,10 +1,10 @@
 package orchestrator
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -12,60 +12,73 @@ import (
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/expressions"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/pages"
-	"github.com/m1al04949/arithnetic-expression-calculator/internal/orchrepository"
-	"github.com/m1al04949/arithnetic-expression-calculator/internal/pagesrepository"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/http-server/handlers/users"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/orchrepository"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/pagesrepository"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/usersrepository"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/storage"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/templates"
 )
 
-func RunServer() error {
+type Orchestrator struct {
+	Config *config.Config
+	Log    *slog.Logger
+	Server *http.Server
+}
 
-	// Config Initializing
-	cfg := config.LoadCfg()
+func New(cfg *config.Config, log *slog.Logger) *Orchestrator {
+	return &Orchestrator{
+		Config: cfg,
+		Log:    log,
+		Server: &http.Server{},
+	}
+}
 
-	// Log Initializing
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	logger.Info("log init")
+func (o *Orchestrator) RunServer() error {
 
 	// Storage Initializing
-	store := storage.New(cfg.StoragePath, cfg.DatabaseURL)
+	store := storage.New(o.Config.StoragePath, o.Config.DatabaseURL)
 	if err := store.Open(); err != nil {
-		logger.Error("failed to init storage")
+		o.Log.Error("failed to init storage")
 		return err
 	}
 	defer store.Close()
 	if err := store.CreateTabs(); err != nil {
-		logger.Error("failed to init tabs")
+		o.Log.Error("failed to init tabs")
 		return err
 	}
-	logger.Info("storage is initialized")
+	o.Log.Info("storage is initialized")
 
 	// Templates Initializing
-	templates, err := templates.New(*cfg)
+	templates, err := templates.New(*o.Config)
 	if err != nil {
-		logger.Error("failed to init templates")
+		o.Log.Error("failed to init templates")
 		return err
 	}
-	logger.Info("templates is initialized")
+	o.Log.Info("templates is initialized")
 
 	// Init Agents
-	agent := agent.New(cfg)
-	logger.Info("agent is initialized")
+	agent := agent.New(o.Config)
+	o.Log.Info("agent is initialized")
 
 	//Init Repositories
-	orchRepository := orchrepository.New(logger, store, agent)
-	pagesRepository := pagesrepository.New(logger, templates, cfg, store, agent)
+	orchRepository := orchrepository.New(o.Log, store, agent)
+	pagesRepository := pagesrepository.New(o.Log, templates, o.Config, store, agent)
+	usersRepository := usersrepository.New(o.Log, o.Config, store)
 
 	// Init Handlers
 	expHandler := expressions.New(*orchRepository)
 	pageHandler := pages.New(*pagesRepository)
+	usersHandler := users.New(*usersRepository)
 
 	// Router Initiziling
 	router := chi.NewRouter()
 
+	// Middlewares
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
 
+	// Route Handlers
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", pageHandler.GetMainPage)               // Get Main Page
 		r.Post("/", expHandler.PostExpression)            // Add Expression
@@ -73,29 +86,40 @@ func RunServer() error {
 		r.Post("/settings", pageHandler.SetSettingsPage)  // Post Settings Page
 		r.Get("/expressions", pageHandler.GetExpressions) // Get All Expressions
 		r.Get("/tasks", pageHandler.GetTasks)             // Get Tasks List
+		r.Post("/register", usersHandler.PostUser)        // Post New User
 	})
 
 	// Check new expressions, parsing and calculate
 	done := make(chan struct{})
-	go orchRepository.Processing(logger, cfg.ProcessingInterval, done)
+	go orchRepository.Processing(o.Log, o.Config.ProcessingInterval, done)
 
 	// Start HTTP Server
-	logger.Info("starting server address", slog.String("address", cfg.Address))
+	o.Log.Info("starting server address", slog.String("address", o.Config.Address))
 
-	srv := &http.Server{
-		Addr:         cfg.Address,
+	o.Server = &http.Server{
+		Addr:         o.Config.Address,
 		Handler:      router,
-		ReadTimeout:  cfg.HTTPServer.Timeout,
-		WriteTimeout: cfg.HTTPServer.Timeout,
-		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+		ReadTimeout:  o.Config.HTTPServer.Timeout,
+		WriteTimeout: o.Config.HTTPServer.Timeout,
+		IdleTimeout:  o.Config.HTTPServer.IdleTimeout,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		logger.Info("failed to start server")
+	if err := o.Server.ListenAndServe(); err != nil {
+		o.Log.Info("failed to start server")
 		return err
 	}
 
-	logger.Error("server stopped")
+	o.Log.Error("server stopped")
 
 	return fmt.Errorf("server is stopped")
+}
+
+func (o *Orchestrator) Stop(ctx context.Context) error {
+
+	err := o.Server.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
