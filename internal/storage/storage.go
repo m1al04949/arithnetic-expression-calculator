@@ -74,6 +74,7 @@ func (s *Storage) CreateTabs() error {
 	_, err := s.db.Exec(`
 	    CREATE TABLE IF NOT EXISTS expressions(
 		id SERIAL PRIMARY KEY,
+		user_name TEXT NOT NULL,
 		added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		expression TEXT,
 		status TEXT NOT NULL,
@@ -90,13 +91,12 @@ func (s *Storage) CreateTabs() error {
 	}
 
 	_, err = s.db.Exec(`
-		CREATE TABLE IF NOT EXISTS users (
+		CREATE TABLE IF NOT EXISTS users(
 		user_id SERIAL PRIMARY KEY,
 		login VARCHAR(255) UNIQUE NOT NULL,
 		password_hash VARCHAR(255) NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);
-	`)
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+		`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
