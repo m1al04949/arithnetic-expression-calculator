@@ -42,6 +42,60 @@ func New(pagesrep pagesrepository.PagesRepository) *PagesHandle {
 	}
 }
 
+func (h *PagesHandle) GetAuthPage(w http.ResponseWriter, r *http.Request) {
+	const op = "handlers.getauthpage"
+
+	h.PagesRepository.Log = h.PagesRepository.Log.With(
+		slog.String("op", op),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	data := "Начальная страница"
+
+	err := h.PagesRepository.Templates.Auth.Execute(w, data)
+	if err != nil {
+		h.PagesRepository.Log.Error("failed to download auth page")
+		render.JSON(w, r, response.ErrorRequest("failed to download auth page"))
+		return
+	}
+}
+
+func (h *PagesHandle) GetRegPage(w http.ResponseWriter, r *http.Request) {
+	const op = "handlers.getregpage"
+
+	h.PagesRepository.Log = h.PagesRepository.Log.With(
+		slog.String("op", op),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	data := "Страница регистрации"
+
+	err := h.PagesRepository.Templates.Register.Execute(w, data)
+	if err != nil {
+		h.PagesRepository.Log.Error("failed to download reg page")
+		render.JSON(w, r, response.ErrorRequest("failed to download reg page"))
+		return
+	}
+}
+
+func (h *PagesHandle) GetLoginPage(w http.ResponseWriter, r *http.Request) {
+	const op = "handlers.getloginpage"
+
+	h.PagesRepository.Log = h.PagesRepository.Log.With(
+		slog.String("op", op),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	data := "Страница входа"
+
+	err := h.PagesRepository.Templates.Login.Execute(w, data)
+	if err != nil {
+		h.PagesRepository.Log.Error("failed to download login page")
+		render.JSON(w, r, response.ErrorRequest("failed to download login page"))
+		return
+	}
+}
+
 func (h *PagesHandle) GetMainPage(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.getmainpage"
 

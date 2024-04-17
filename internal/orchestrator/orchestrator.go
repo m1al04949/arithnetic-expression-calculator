@@ -80,13 +80,16 @@ func (o *Orchestrator) RunServer() error {
 
 	// Route Handlers
 	router.Route("/", func(r chi.Router) {
-		r.Get("/", pageHandler.GetMainPage)               // Get Main Page
-		r.Post("/", expHandler.PostExpression)            // Add Expression
-		r.Get("/settings", pageHandler.GetSettingsPage)   // Get Settings Page
-		r.Post("/settings", pageHandler.SetSettingsPage)  // Post Settings Page
-		r.Get("/expressions", pageHandler.GetExpressions) // Get All Expressions
-		r.Get("/tasks", pageHandler.GetTasks)             // Get Tasks List
-		r.Post("/register", usersHandler.PostUser)        // Post New User
+		r.Get("/", pageHandler.GetAuthPage)                   // Get Auth Page
+		r.Get("/register", pageHandler.GetRegPage)            // Get Reg Page
+		r.Get("/login", pageHandler.GetLoginPage)             // Get Login Page
+		r.Get("/{id}", pageHandler.GetMainPage)               // Get Main Page
+		r.Post("/{id}", expHandler.PostExpression)            // Add Expression
+		r.Get("/settings", pageHandler.GetSettingsPage)       // Get Settings Page
+		r.Post("/settings", pageHandler.SetSettingsPage)      // Post Settings Page
+		r.Get("/expressions{id}", pageHandler.GetExpressions) // Get All Expressions
+		r.Get("/tasks{id}", pageHandler.GetTasks)             // Get Tasks List
+		r.Post("/register", usersHandler.PostUser)            // Post New User
 	})
 
 	// Check new expressions, parsing and calculate
