@@ -9,3 +9,10 @@ type ExpressionTab struct {
 	Status     string
 	Result     float64
 }
+
+type UsersTab struct {
+	UserID    int
+	Login     string
+	Password  string
+	CreatedAt time.Time
+}

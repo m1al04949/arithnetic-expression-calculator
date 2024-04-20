@@ -24,6 +24,9 @@ type Storer interface {
 	UpdateStatus(model.ExpressionTab, string) error
 	UpdateResult(int, float64) error
 	RefreshStatus() error
+	CheckUserExists(string) (bool, error)
+	CreateUser(string, string) error
+	CheckAuth(string, string) (bool, int, error)
 }
 
 var (
@@ -232,4 +235,57 @@ func (s *Storage) RefreshStatus() error {
 	}
 
 	return nil
+}
+
+func (s *Storage) CheckUserExists(username string) (bool, error) {
+
+	const op = "storage.checkuserexists"
+
+	var count int
+	// Проверяем наличие пользователя
+	err := s.db.QueryRow("SELECT COUNT(*) FROM users WHERE login = $1", username).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return count > 0, nil
+}
+
+func (s *Storage) CreateUser(user, password string) error {
+
+	const op = "storage.createuser"
+
+	// Добавляем пользователя
+	_, err := s.db.Exec(`
+        INSERT INTO users (login, password_hash)
+        VALUES ($1, $2)
+    `, user, password)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) CheckAuth(user, password string) (bool, int, error) {
+
+	const op = "storage.checkauth"
+
+	var (
+		id       int
+		passOnDB string
+	)
+
+	// Проверяем пользователя
+	err := s.db.QueryRow(`
+        SELECT user_id, password_hash FROM users WHERE login = $1
+    `, user).Scan(&id, &passOnDB)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, 0, nil
+		}
+		return false, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return password == passOnDB, id, nil
 }

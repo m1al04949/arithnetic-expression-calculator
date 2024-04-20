@@ -20,3 +20,33 @@ func New(log *slog.Logger, cfg *config.Config, store storage.Storer) *UsersRepos
 		Store:  store,
 	}
 }
+
+func (u *UsersRepository) CheckUserOnDb(user string) (bool, error) {
+
+	exists, err := u.Store.CheckUserExists(user)
+	if err != nil {
+		u.Log.Error("server internal error", slog.Any("error", err.Error()))
+	}
+
+	return exists, err
+}
+
+func (u *UsersRepository) CreateUser(user, password string) error {
+
+	err := u.Store.CreateUser(user, password)
+	if err != nil {
+		u.Log.Error("server internal error", slog.Any("error", err.Error()))
+	}
+
+	return nil
+}
+
+func (u *UsersRepository) CheckAuthorization(user, password string) (bool, int, error) {
+
+	check, id, err := u.Store.CheckAuth(user, password)
+	if err != nil {
+		u.Log.Error("server internal error", slog.Any("error", err.Error()))
+	}
+
+	return check, id, nil
+}

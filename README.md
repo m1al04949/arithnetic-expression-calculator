@@ -6,10 +6,10 @@
  1. Необходимо склонировать репозиторий https://github.com/m1al04949/arithnetic-expression-calculator.
  2. Выполнить команды:
     docker-compose up -d (чтобы поднять базу данных)
-    go run main.go (из точки входа в папке cmd)
+    cd ./cmd/orchestrator (для перехода в директорию точки входа)
+    go run main.go (запуск приложения)
 
 Точка входа приложения в папке cmd/orchestrator. 
-
 Конфигурация работы сервера и приложения в целом - config/config.yaml.
 
 
