@@ -7,18 +7,50 @@
 </head>
 <body>
     <h1>Регистрация</h1>
-    <form>
-        <label for="username">Имя пользователя:</label><br>
-        <input type="text" id="username" name="username"><br>
+    <form id="registerForm" action="/register" method="post" onsubmit="return submitForm()">
+        <label for="login">Имя пользователя:</label><br>
+        <input type="text" id="login" name="login"><br>
 
         <label for="password">Пароль:</label><br>
         <input type="password" id="password" name="password"><br><br>
 
         <button type="submit">Ок</button>
+    </form>
+
+    <form>
         <button type="button" onclick="goBack()">Назад</button>
     </form>
 
     <script>
+        function submitForm() {
+            var username = document.getElementById("login").value;
+            var password = document.getElementById("password").value;
+
+            if (username == "" || password == "") {
+                alert(`Пожалуйста, заполните поля "Имя пользователя" и "Пароль"`);
+                return false;
+            }
+
+            var formData = new FormData(document.getElementById("registerForm"));
+
+            // Отправляем POST-запрос
+            fetch('/register', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                window.location.href = "/login";
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+
+            return false;
+        }
+
         function goBack() {
             window.history.back();
         }

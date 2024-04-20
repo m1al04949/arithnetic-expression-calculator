@@ -7,18 +7,58 @@
 </head>
 <body>
     <h1>Вход</h1>
-    <form>
-        <label for="username">Имя пользователя:</label><br>
-        <input type="text" id="username" name="username"><br>
+    <form id="loginForm" action="/login" method="post" onsubmit="return submitForm()">
+        <label for="login">Имя пользователя:</label><br>
+        <input type="text" id="login" name="login"><br>
 
         <label for="password">Пароль:</label><br>
         <input type="password" id="password" name="password"><br><br>
 
         <button type="submit">Войти</button>
+    </form>
+
+    <form>
         <button type="button" onclick="goBack()">Назад</button>
     </form>
 
     <script>
+        function submitForm() {
+            var username = document.getElementById("login").value;
+            var password = document.getElementById("password").value;
+
+            if (username == "" || password == "") {
+                alert(`Пожалуйста, заполните поля "Имя пользователя" и "Пароль"`);
+                return false;
+            }
+
+            var formData = new FormData(document.getElementById("loginForm"));
+
+            // Отправляем POST-запрос
+            fetch('/login', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status == "") {
+                    localStorage.setItem('jwtToken', data.token);
+                    window.location.href = `/${data.id}`;
+                } else {
+                    alert('Неверное имя пользователя или пароль');
+                }
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+
+            return false;
+        }
+
         function goBack() {
             window.history.back();
         }
