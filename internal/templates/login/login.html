@@ -45,7 +45,8 @@
                 return response.json();
             })
             .then(data => {
-                if (data.status == "") {
+                console.log(data)
+                if (data.status == "OK") {
                     localStorage.setItem('jwtToken', data.token);
                     window.location.href = `/${data.id}`;
                 } else {

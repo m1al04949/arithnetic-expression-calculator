@@ -5,6 +5,7 @@ import (
 
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/storage"
+	"github.com/m1al04949/arithnetic-expression-calculator/pkg/hash"
 )
 
 type UsersRepository struct {
@@ -43,10 +44,12 @@ func (u *UsersRepository) CreateUser(user, password string) error {
 
 func (u *UsersRepository) CheckAuthorization(user, password string) (bool, int, error) {
 
-	check, id, err := u.Store.CheckAuth(user, password)
+	check, id, pass, err := u.Store.CheckAuth(user)
 	if err != nil {
 		u.Log.Error("server internal error", slog.Any("error", err.Error()))
 	}
+
+	check = hash.ComparePasswordWithHash(password, pass)
 
 	return check, id, nil
 }

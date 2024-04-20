@@ -26,7 +26,7 @@ type Storer interface {
 	RefreshStatus() error
 	CheckUserExists(string) (bool, error)
 	CreateUser(string, string) error
-	CheckAuth(string, string) (bool, int, error)
+	CheckAuth(string) (bool, int, string, error)
 }
 
 var (
@@ -267,7 +267,7 @@ func (s *Storage) CreateUser(user, password string) error {
 	return nil
 }
 
-func (s *Storage) CheckAuth(user, password string) (bool, int, error) {
+func (s *Storage) CheckAuth(user string) (bool, int, string, error) {
 
 	const op = "storage.checkauth"
 
@@ -282,10 +282,10 @@ func (s *Storage) CheckAuth(user, password string) (bool, int, error) {
     `, user).Scan(&id, &passOnDB)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, 0, nil
+			return false, 0, "", nil
 		}
-		return false, 0, fmt.Errorf("%s: %w", op, err)
+		return false, 0, "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return password == passOnDB, id, nil
+	return true, id, passOnDB, nil
 }

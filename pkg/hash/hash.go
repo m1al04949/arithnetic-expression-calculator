@@ -12,3 +12,13 @@ func HashPassword(password string) (string, error) {
 
 	return string(hashedPassword), nil
 }
+
+// ComparePasswordWithHash сравнивает переданный пароль с хешем пароля
+func ComparePasswordWithHash(password, hashedPassword string) bool {
+
+	hashedPasswordBytes := []byte(hashedPassword)
+
+	err := bcrypt.CompareHashAndPassword(hashedPasswordBytes, []byte(password))
+
+	return err == nil
+}

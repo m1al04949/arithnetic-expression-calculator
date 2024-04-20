@@ -107,12 +107,7 @@ func (u *UsersHandle) PostLogin(w http.ResponseWriter, r *http.Request) {
 	u.UsersRepository.Log.Info("request decoded", slog.Any("request", req))
 
 	// Check User and Password
-	hashedPassword, err := hash.HashPassword(req.Password)
-	if err != nil {
-		render.JSON(w, r, response.ErrorServer("error password"))
-		return
-	}
-	check, id, err := u.UsersRepository.CheckAuthorization(req.Login, hashedPassword)
+	check, id, err := u.UsersRepository.CheckAuthorization(req.Login, req.Password)
 	if err != nil {
 		render.JSON(w, r, response.ErrorServer("server internal error"))
 		return
