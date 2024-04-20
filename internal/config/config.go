@@ -9,10 +9,12 @@ import (
 )
 
 type Config struct {
-	Env         string `yaml:"env" env:"ENV" env-default:"local"`
-	StoragePath string `yaml:"storage_path" env-required:"true"`
-	DatabaseURL string `yaml:"database_url" env-required:"true"`
-	Workers     int
+	Env         string        `yaml:"env" env:"ENV" env-default:"local"`
+	StoragePath string        `yaml:"storage_path" env-required:"true"`
+	DatabaseURL string        `yaml:"database_url" env-required:"true"`
+	Workers     int           `yaml:"workers"`
+	Token       string        `yaml:"token" env-required:"true"`
+	TokenExpire time.Duration `yaml:"token_expire"`
 	HTTPServer  `yaml:"http_server"`
 	Timeouts
 }
