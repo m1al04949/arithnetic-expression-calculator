@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/golang-jwt/jwt"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/response"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/model"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/pagesrepository"
@@ -202,6 +203,30 @@ func (h *PagesHandle) GetExpressions(w http.ResponseWriter, r *http.Request) {
 		slog.String("op", op),
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
+
+	cookie, err := r.Cookie("jwtToken")
+	if err != nil {
+		h.PagesRepository.Log.Error("no token in cookie", slog.Any("error", err.Error()))
+		return
+	}
+
+	tokenString := cookie.Value
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(h.PagesRepository.Config.Token), nil
+	})
+	if err != nil {
+		h.PagesRepository.Log.Error("failed parsing token", slog.Any("error", err.Error()))
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		username := claims["user"].(string)
+		h.PagesRepository.Log.Info("user authentication", slog.Any("username", username))
+	} else {
+		h.PagesRepository.Log.Error("failed token")
+		return
+	}
 
 	user := chi.URLParam(r, "user")
 

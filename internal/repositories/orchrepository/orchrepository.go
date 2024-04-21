@@ -8,18 +8,21 @@ import (
 	"unicode"
 
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/agent"
+	"github.com/m1al04949/arithnetic-expression-calculator/internal/config"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/parser"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/storage"
 )
 
 type OrchRepository struct {
+	Cfg   *config.Config
 	Log   *slog.Logger
 	Store storage.Storer
 	Agent agent.Agenter
 }
 
-func New(log *slog.Logger, store storage.Storer, agent agent.Agenter) *OrchRepository {
+func New(cfg *config.Config, log *slog.Logger, store storage.Storer, agent agent.Agenter) *OrchRepository {
 	return &OrchRepository{
+		Cfg:   cfg,
 		Log:   log,
 		Store: store,
 		Agent: agent,

@@ -123,12 +123,23 @@ func (u *UsersHandle) PostLogin(w http.ResponseWriter, r *http.Request) {
 	claims["user"] = req.Login
 	claims["exp"] = time.Now().Add(u.UsersRepository.Config.TokenExpire).Unix()
 
-	// Подписываем токен с использованием секретного ключа
+	// Sign token with secret key
 	tokenString, err := token.SignedString([]byte(u.UsersRepository.Config.Token))
 	if err != nil {
 		render.JSON(w, r, response.ErrorServer("server internal error"))
 		return
 	}
+
+	// Set cookie with token
+	expiration := time.Now().Add(u.UsersRepository.Config.TokenExpire)
+	cookie := http.Cookie{
+		Name:     "jwtToken",
+		Value:    tokenString,
+		Expires:  expiration,
+		Path:     "/",
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookie)
 
 	render.JSON(w, r, response.Authorization(req.Login, tokenString))
 }

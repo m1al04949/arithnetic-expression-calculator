@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/golang-jwt/jwt"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/response"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/repositories/orchrepository"
 )
@@ -44,6 +45,30 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 	)
 
 	var req Request
+
+	cookie, err := r.Cookie("jwtToken")
+	if err != nil {
+		h.OrchRepository.Log.Error("no token in cookie", slog.Any("error", err.Error()))
+		return
+	}
+
+	tokenString := cookie.Value
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(h.OrchRepository.Cfg.Token), nil
+	})
+	if err != nil {
+		h.OrchRepository.Log.Error("failed parsing token", slog.Any("error", err.Error()))
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		username := claims["user"].(string)
+		h.OrchRepository.Log.Info("user authentication", slog.Any("username", username))
+	} else {
+		h.OrchRepository.Log.Error("failed token")
+		return
+	}
 
 	req.Expression = r.FormValue("expression")
 	req.User = r.FormValue("user")

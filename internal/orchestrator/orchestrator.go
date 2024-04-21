@@ -63,7 +63,7 @@ func (o *Orchestrator) RunServer() error {
 	o.Log.Info("agent is initialized")
 
 	//Init Repositories
-	orchRepository := orchrepository.New(o.Log, store, agent)
+	orchRepository := orchrepository.New(o.Config, o.Log, store, agent)
 	pagesRepository := pagesrepository.New(o.Log, templates, o.Config, store, agent)
 	usersRepository := usersrepository.New(o.Log, o.Config, store)
 

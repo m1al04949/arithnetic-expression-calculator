@@ -63,6 +63,14 @@
         function goBack() {
             window.history.back();
         }
+
+        function addTokenToRequest(request) {
+            var jwtToken = localStorage.getItem('jwtToken');
+            if (jwtToken) {
+                request.headers.append('Authorization', 'Bearer ' + jwtToken);
+            }
+            return request;
+        }
     </script>
 </body>
 </html>
