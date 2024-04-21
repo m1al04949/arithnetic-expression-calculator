@@ -48,7 +48,7 @@
                 console.log(data)
                 if (data.status == "OK") {
                     localStorage.setItem('jwtToken', data.token);
-                    window.location.href = `/${data.id}`;
+                    window.location.href = `/${data.user}`;
                 } else {
                     alert('Неверное имя пользователя или пароль');
                 }

@@ -18,15 +18,15 @@ type Storer interface {
 	Close()
 	CreateTabs() error
 	Open() error
-	ExpressionSave(string) (int, error)
-	GetAllExpressions() ([]model.ExpressionTab, error)
+	ExpressionSave(string, string) (int, error)
+	GetAllExpressions(string) ([]model.ExpressionTab, error)
 	GetNewExpression() (model.ExpressionTab, error)
 	UpdateStatus(model.ExpressionTab, string) error
 	UpdateResult(int, float64) error
 	RefreshStatus() error
 	CheckUserExists(string) (bool, error)
 	CreateUser(string, string) error
-	CheckAuth(string) (bool, int, string, error)
+	CheckAuth(string) (bool, string, error)
 }
 
 var (
@@ -107,22 +107,23 @@ func (s *Storage) CreateTabs() error {
 	return nil
 }
 
-func (s *Storage) ExpressionSave(expression string) (int, error) {
+func (s *Storage) ExpressionSave(user, expression string) (int, error) {
 
 	const op = "storage.ExpressionSave"
 
 	m := &model.ExpressionTab{
+		User:       user,
 		Expression: expression,
 		Status:     StatusNew,
 	}
 
-	stmt, err := s.db.Prepare("INSERT INTO expressions(expression, status) VALUES ($1, $2);")
+	stmt, err := s.db.Prepare("INSERT INTO expressions(user_name, expression, status) VALUES ($1, $2, $3);")
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(m.Expression, m.Status)
+	_, err = stmt.Exec(m.User, m.Expression, m.Status)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
@@ -135,11 +136,12 @@ func (s *Storage) ExpressionSave(expression string) (int, error) {
 	return m.ID, nil
 }
 
-func (s *Storage) GetAllExpressions() ([]model.ExpressionTab, error) {
+func (s *Storage) GetAllExpressions(user string) ([]model.ExpressionTab, error) {
 
 	const op = "storage.getallexpressions"
 
-	rows, err := s.db.Query("SELECT id, added_at, expression, status, result FROM expressions")
+	rows, err := s.db.Query(`SELECT id, user_name, added_at, expression, status, result 
+							FROM expressions WHERE user_name = $1`, user)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -151,7 +153,7 @@ func (s *Storage) GetAllExpressions() ([]model.ExpressionTab, error) {
 	// Итерируем по результатам запроса
 	for rows.Next() {
 		var expression model.ExpressionTab
-		err := rows.Scan(&expression.ID, &expression.Added, &expression.Expression, &expression.Status, &expression.Result)
+		err := rows.Scan(&expression.ID, &user, &expression.Added, &expression.Expression, &expression.Status, &expression.Result)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
@@ -172,7 +174,7 @@ func (s *Storage) GetNewExpression() (model.ExpressionTab, error) {
 	// Делаем выборку выражение с status = "new"
 	var row model.ExpressionTab
 
-	err := s.db.QueryRow("SELECT * FROM expressions WHERE status = $1 ORDER BY id LIMIT 1", StatusNew).Scan(&row.ID, &row.Added, &row.Expression, &row.Status, &row.Result)
+	err := s.db.QueryRow("SELECT * FROM expressions WHERE status = $1 ORDER BY id LIMIT 1", StatusNew).Scan(&row.ID, &row.User, &row.Added, &row.Expression, &row.Status, &row.Result)
 	if err != nil {
 		return model.ExpressionTab{}, err
 	}
@@ -267,7 +269,7 @@ func (s *Storage) CreateUser(user, password string) error {
 	return nil
 }
 
-func (s *Storage) CheckAuth(user string) (bool, int, string, error) {
+func (s *Storage) CheckAuth(user string) (bool, string, error) {
 
 	const op = "storage.checkauth"
 
@@ -282,10 +284,10 @@ func (s *Storage) CheckAuth(user string) (bool, int, string, error) {
     `, user).Scan(&id, &passOnDB)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, 0, "", nil
+			return false, "", nil
 		}
-		return false, 0, "", fmt.Errorf("%s: %w", op, err)
+		return false, "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return true, id, passOnDB, nil
+	return true, passOnDB, nil
 }

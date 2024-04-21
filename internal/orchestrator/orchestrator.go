@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -77,25 +78,32 @@ func (o *Orchestrator) RunServer() error {
 	// Middlewares
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	var once sync.Once
 
 	// Route Handlers
 	router.Route("/", func(r chi.Router) {
-		r.Get("/", pageHandler.GetAuthPage)                   // Get Auth Page
-		r.Get("/register", pageHandler.GetRegPage)            // Get Reg Page
-		r.Post("/register", usersHandler.PostUser)            // Post New User
-		r.Get("/login", pageHandler.GetLoginPage)             // Get Login Page
-		r.Post("/login", usersHandler.PostLogin)              // Post New User
-		r.Get("/{id}", pageHandler.GetMainPage)               // Get Main Page
-		r.Post("/{id}", expHandler.PostExpression)            // Add Expression
-		r.Get("/settings", pageHandler.GetSettingsPage)       // Get Settings Page
-		r.Post("/settings", pageHandler.SetSettingsPage)      // Post Settings Page
-		r.Get("/expressions{id}", pageHandler.GetExpressions) // Get All Expressions
-		r.Get("/tasks{id}", pageHandler.GetTasks)             // Get Tasks List
+		r.Get("/", pageHandler.GetAuthPage)        // Get Auth Page
+		r.Get("/register", pageHandler.GetRegPage) // Get Reg Page
+		r.Post("/register", usersHandler.PostUser) // Post New User
+		r.Get("/login", pageHandler.GetLoginPage)  // Get Login Page
+		r.Post("/login", usersHandler.PostLogin)   // Post New User
+		r.Get("/{user}", func(w http.ResponseWriter, r *http.Request) {
+			user := chi.URLParam(r, "user")
+			pageHandler.GetMainPage(w, r, user)
+			// Check new expressions, parsing and calculate
+			once.Do(func() {
+				done := make(chan struct{})
+				go orchRepository.Processing(user, o.Log, o.Config.ProcessingInterval, done)
+			})
+		}) // Get Main Page
+		r.Post("/{user}", expHandler.PostExpression)             // Add Expression
+		r.Get("/settings", pageHandler.GetSettingsPage)          // Get Settings Page
+		r.Post("/settings", pageHandler.SetSettingsPage)         // Post Settings Page
+		r.Get("/expressions/{user}", pageHandler.GetExpressions) // Get All Expressions
+		r.Get("/tasks", pageHandler.GetTasks)                    // Get Tasks List
 	})
-
-	// Check new expressions, parsing and calculate
-	done := make(chan struct{})
-	go orchRepository.Processing(o.Log, o.Config.ProcessingInterval, done)
 
 	// Start HTTP Server
 	o.Log.Info("starting server address", slog.String("address", o.Config.Address))

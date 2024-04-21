@@ -23,8 +23,12 @@
         <button type="submit">Применить</button>
     </form>
 
-    <form action="/" method="get">
-        <button type="submit">Назад</button>
-    </form>
+    <button onclick="goBack()">Назад</button>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
 </body>
 </html>

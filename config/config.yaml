@@ -7,9 +7,9 @@ token_expire: 1h
 timeouts:
   process_interval: 10s
   operation_sum: 20s
-  operation_sub: 25s
-  operation_mul: 27s
-  operation_div: 30s
+  operation_sub: 22s
+  operation_mul: 26s
+  operation_div: 27s
 http_server:
   address : "localhost:8080"
   timeout: 4s

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/m1al04949/arithnetic-expression-calculator/internal/lib/response"
@@ -29,11 +30,16 @@ type RequestSettings struct {
 }
 
 type RequestExpressions struct {
+	User        string
 	Expressions []model.ExpressionTab
 }
 
 type RequestTasks struct {
 	Workers int
+}
+
+type PageData struct {
+	User string
 }
 
 func New(pagesrep pagesrepository.PagesRepository) *PagesHandle {
@@ -50,7 +56,7 @@ func (h *PagesHandle) GetAuthPage(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	data := "Начальная страница"
+	data := "Регистрация пользователя"
 
 	err := h.PagesRepository.Templates.Auth.Execute(w, data)
 	if err != nil {
@@ -86,17 +92,17 @@ func (h *PagesHandle) GetLoginPage(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	data := "Страница входа"
+	data := "Вход"
 
 	err := h.PagesRepository.Templates.Login.Execute(w, data)
 	if err != nil {
-		h.PagesRepository.Log.Error("failed to download login page")
+		h.PagesRepository.Log.Error("failed to download login page", slog.Any("error", err.Error()))
 		render.JSON(w, r, response.ErrorRequest("failed to download login page"))
 		return
 	}
 }
 
-func (h *PagesHandle) GetMainPage(w http.ResponseWriter, r *http.Request) {
+func (h *PagesHandle) GetMainPage(w http.ResponseWriter, r *http.Request, user string) {
 	const op = "handlers.getmainpage"
 
 	h.PagesRepository.Log = h.PagesRepository.Log.With(
@@ -104,11 +110,13 @@ func (h *PagesHandle) GetMainPage(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	data := "Главная страница"
+	data := PageData{
+		User: user,
+	}
 
 	err := h.PagesRepository.Templates.Main.Execute(w, data)
 	if err != nil {
-		h.PagesRepository.Log.Error("failed to download main page")
+		h.PagesRepository.Log.Error("failed to download main page", slog.Any("error", err.Error()))
 		render.JSON(w, r, response.ErrorRequest("failed to download main page"))
 		return
 	}
@@ -195,7 +203,9 @@ func (h *PagesHandle) GetExpressions(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	expressions, err := h.PagesRepository.Store.GetAllExpressions()
+	user := chi.URLParam(r, "user")
+
+	expressions, err := h.PagesRepository.Store.GetAllExpressions(user)
 	if err != nil {
 		render.JSON(w, r, response.ErrorRequest("failed to download expressions page"+err.Error()))
 	}

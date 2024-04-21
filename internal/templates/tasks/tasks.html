@@ -8,7 +8,11 @@
     <h1>Свободные вычислительные мощности:</h1>
     <p>Свободных вычислительных мощностей: {{ .Workers }}</p>
 </body>
-<form action="/" method="get">
-    <button type="submit">Назад</button>
-</form>
+<button onclick="goBack()">Назад</button>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
 </html>

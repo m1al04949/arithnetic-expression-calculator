@@ -7,8 +7,9 @@
 </head>
 <body>
     <h1>Введите выражение:</h1>
-    <form action="/" method="post">
+    <form id="expressionForm" action="/{{.User}}" method="post">
         <input type="text" name="expression" placeholder="Введите выражение" required>
+        <input type="hidden" id="user" name="user" value="{{.User}}">
         <button type="submit">Отправить</button>
     </form>
     <br>
@@ -16,7 +17,7 @@
         <button type="submit">Перейти на страницу настроек</button>
     </form>
     <br>
-    <form action="/expressions" method="get">
+    <form action="/expressions/{{.User}}" method="get" id="expressionsForm">
         <button type="submit">Получить список выражений</button>
     </form>
     <br>
@@ -26,5 +27,8 @@
     <form action="/" method="get">
         <button type="submit">Выйти</button>
     </form>
+    <script>
+        console.log("User:", "{{.User}}");
+    </script>
 </body>
 </html>

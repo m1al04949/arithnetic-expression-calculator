@@ -45,20 +45,20 @@ func (o *OrchRepository) CheckExpression(expression string) (error, bool) {
 	return nil, true
 }
 
-func (o *OrchRepository) CheckExpOnDb(expression string) (bool, error) {
+func (o *OrchRepository) CheckExpOnDb(user, expression string) (bool, error) {
 
 	//Проверка значения в базе. И если есть, то какой его статус
 
 	return true, nil
 }
 
-func (o *OrchRepository) AddExpression(expression string) (int, error) {
+func (o *OrchRepository) AddExpression(user, expression string) (int, error) {
 
 	//Добавляем выражение в базу
-	return o.Store.ExpressionSave(expression)
+	return o.Store.ExpressionSave(user, expression)
 }
 
-func (o *OrchRepository) Processing(log *slog.Logger, interval time.Duration, done chan struct{}) {
+func (o *OrchRepository) Processing(user string, log *slog.Logger, interval time.Duration, done chan struct{}) {
 
 	// Опрашиваем базу данных на предмет получения новых выражений
 	// Парсим новые выражения на части

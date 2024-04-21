@@ -42,14 +42,14 @@ func (u *UsersRepository) CreateUser(user, password string) error {
 	return nil
 }
 
-func (u *UsersRepository) CheckAuthorization(user, password string) (bool, int, error) {
+func (u *UsersRepository) CheckAuthorization(user, password string) (bool, error) {
 
-	check, id, pass, err := u.Store.CheckAuth(user)
+	check, pass, err := u.Store.CheckAuth(user)
 	if err != nil {
 		u.Log.Error("server internal error", slog.Any("error", err.Error()))
 	}
 
 	check = hash.ComparePasswordWithHash(password, pass)
 
-	return check, id, nil
+	return check, nil
 }

@@ -7,7 +7,7 @@ import (
 type Response struct {
 	Status     string `json:"status"`
 	HttpStatus int    `json:"httpstatus"`
-	ID         int    `json:"id"`
+	User       string `json:"user"`
 	Token      string `json:"token"`
 	Error      string `json:"error,omitempty"`
 }
@@ -24,11 +24,11 @@ func OK() Response {
 	}
 }
 
-func Authorization(id int, token string) Response {
+func Authorization(user string, token string) Response {
 	return Response{
 		Status:     StatusOK,
 		HttpStatus: http.StatusOK,
-		ID:         id,
+		User:       user,
 		Token:      token,
 	}
 }

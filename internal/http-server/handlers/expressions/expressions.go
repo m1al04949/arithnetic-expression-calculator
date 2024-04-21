@@ -15,6 +15,7 @@ type ExpressionHandle struct {
 }
 
 type Request struct {
+	User       string `json:"user"`
 	Expression string `json:"expression"`
 }
 
@@ -45,6 +46,7 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 	var req Request
 
 	req.Expression = r.FormValue("expression")
+	req.User = r.FormValue("user")
 
 	h.OrchRepository.Log.Info("request body decoded", slog.Any("request", req))
 
@@ -56,7 +58,7 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 	}
 
 	//Check expression on DB
-	check, err = h.OrchRepository.CheckExpOnDb(req.Expression)
+	check, err = h.OrchRepository.CheckExpOnDb(req.User, req.Expression)
 	if err != nil {
 		render.JSON(w, r, response.ErrorServer("server internal error"))
 		return
@@ -67,19 +69,13 @@ func (h *ExpressionHandle) PostExpression(w http.ResponseWriter, r *http.Request
 	}
 
 	//Add expression to DB
-	id, err := h.OrchRepository.AddExpression(req.Expression)
+	id, err := h.OrchRepository.AddExpression(req.User, req.Expression)
 	if err != nil {
 		render.JSON(w, r, response.ErrorServer(err.Error()))
 		return
 	}
 
 	h.OrchRepository.Log.Info("expression added", slog.Int("id", id))
-
-	// render.JSON(w, r, Response{
-	// 	Response:     response.OK(),
-	// 	ExpressionID: id,
-	// 	Method:       r.Method,
-	// })
 
 	// Перенаправление на предыдущую страницу
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusFound)

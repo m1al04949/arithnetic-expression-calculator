@@ -107,7 +107,7 @@ func (u *UsersHandle) PostLogin(w http.ResponseWriter, r *http.Request) {
 	u.UsersRepository.Log.Info("request decoded", slog.Any("request", req))
 
 	// Check User and Password
-	check, id, err := u.UsersRepository.CheckAuthorization(req.Login, req.Password)
+	check, err := u.UsersRepository.CheckAuthorization(req.Login, req.Password)
 	if err != nil {
 		render.JSON(w, r, response.ErrorServer("server internal error"))
 		return
@@ -120,7 +120,7 @@ func (u *UsersHandle) PostLogin(w http.ResponseWriter, r *http.Request) {
 	// Create JWT токен
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["username"] = req.Login
+	claims["user"] = req.Login
 	claims["exp"] = time.Now().Add(u.UsersRepository.Config.TokenExpire).Unix()
 
 	// Подписываем токен с использованием секретного ключа
@@ -130,5 +130,5 @@ func (u *UsersHandle) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, r, response.Authorization(id, tokenString))
+	render.JSON(w, r, response.Authorization(req.Login, tokenString))
 }
